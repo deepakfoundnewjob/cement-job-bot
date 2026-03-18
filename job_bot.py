@@ -17,7 +17,7 @@ EMAIL_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
 
 print("🚀 Executive Company Tracking Bot Starting...")
 print("📧 Email:", EMAIL_ADDRESS)
-
+send_telegram("🚀 Bot fully started and scheduler running.")
 conn = sqlite3.connect("jobs.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE IF NOT EXISTS jobs (link TEXT PRIMARY KEY)")
