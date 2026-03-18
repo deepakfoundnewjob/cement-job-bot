@@ -16,7 +16,8 @@ EMAIL_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
 
 print("🚀 Executive Company Tracking Bot Starting...")
 print("📧 Email:", EMAIL_ADDRESS)
-
+print("🤖 Telegram Token Loaded:", TOKEN is not None)
+print("💬 Chat ID Loaded:", CHAT_ID is not None)
 # ------------------ DATABASE ------------------
 
 conn = sqlite3.connect("jobs.db", check_same_thread=False)
