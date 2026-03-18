@@ -15,7 +15,7 @@ CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
 
-print("🚀 Cement Leadership Job Bot Starting...")
+print("🚀 Building Materials Leadership Intelligence Bot Starting...")
 print("📧 Email:", EMAIL_ADDRESS)
 
 conn = sqlite3.connect("jobs.db", check_same_thread=False)
@@ -40,7 +40,8 @@ def save_job(link):
 
 def check_email():
     global collected_jobs
-    print("🔎 Checking Gmail...")
+
+    print("🔎 Checking Gmail for building material leadership jobs...")
 
     mail = imaplib.IMAP4_SSL("imap.gmail.com")
     mail.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
@@ -68,15 +69,44 @@ def check_email():
 
         full_text = (subject + " " + body).lower()
 
-        industry_keywords = ["cement", "building material", "concrete", "rmc"]
-        role_keywords = [
-            "sales head", "regional sales", "state head",
-            "business head", "cluster head", "zonal head",
-            "technical head", "sales manager"
+        # 🔹 Expanded Industry Keywords
+        industry_keywords = [
+            "cement",
+            "building material",
+            "concrete",
+            "rmc",
+            "aac block",
+            "steel",
+            "tmt",
+            "construction chemical",
+            "waterproofing",
+            "tiles",
+            "sanitaryware",
+            "cp fitting",
+            "paint",
+            "plywood",
+            "laminate",
+            "gypsum"
+        ]
+
+        # 🔹 Strict Leadership Roles
+        leadership_keywords = [
+            "sales head",
+            "regional sales",
+            "state head",
+            "zonal head",
+            "cluster head",
+            "business head",
+            "vp sales",
+            "vice president",
+            "gm sales",
+            "general manager",
+            "director sales",
+            "technical head"
         ]
 
         if any(ind in full_text for ind in industry_keywords) and \
-           any(role in full_text for role in role_keywords):
+           any(role in full_text for role in leadership_keywords):
 
             for word in body.split():
                 if "http" in word:
@@ -91,14 +121,14 @@ def check_email():
 def send_hourly_report():
     global collected_jobs
 
-    print("📊 Sending hourly report...")
+    print("📊 Sending hourly executive summary...")
 
     if collected_jobs:
-        message = "📊 Cement Leadership Job Report (Last 1 Hour)\n\n"
+        message = "📊 Building Materials Leadership Report (Last 1 Hour)\n\n"
         for i, (title, link) in enumerate(collected_jobs, 1):
             message += f"{i}️⃣ {title}\n🔗 {link}\n\n"
     else:
-        message = "📊 Cement Leadership Job Report (Last 1 Hour)\n\nNo new relevant jobs found."
+        message = "📊 Building Materials Leadership Report (Last 1 Hour)\n\nNo new relevant leadership roles found."
 
     send_telegram(message)
     collected_jobs = []
@@ -106,7 +136,7 @@ def send_hourly_report():
 schedule.every(5).minutes.do(check_email)
 schedule.every(1).hours.do(send_hourly_report)
 
-send_telegram("✅ Hourly Cement Job Bot Activated")
+send_telegram("✅ Building Materials Leadership Intelligence Bot Activated")
 
 while True:
     schedule.run_pending()
