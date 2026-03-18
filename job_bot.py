@@ -9,22 +9,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Telegram
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-# Gmail
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
 
-print("🚀 Multi-Portal Job Bot Starting...")
+print("🚀 Cement Leadership Job Bot Starting...")
 print("📧 Email:", EMAIL_ADDRESS)
 
-# Database
-conn = sqlite3.connect("jobs.db")
+conn = sqlite3.connect("jobs.db", check_same_thread=False)
 cursor = conn.cursor()
 cursor.execute("CREATE TABLE IF NOT EXISTS jobs (link TEXT PRIMARY KEY)")
 conn.commit()
+
+collected_jobs = []
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
@@ -40,17 +39,16 @@ def save_job(link):
     conn.commit()
 
 def check_email():
-    print("🔎 Checking Gmail for job alerts...")
+    global collected_jobs
+    print("🔎 Checking Gmail...")
 
     mail = imaplib.IMAP4_SSL("imap.gmail.com")
     mail.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
     mail.select("inbox")
 
-    # Read ALL unread job emails
     status, messages = mail.search(None, '(UNSEEN)')
 
     if status != "OK":
-        print("No unread emails.")
         return
 
     for num in messages[0].split():
@@ -59,8 +57,6 @@ def check_email():
         msg = email.message_from_bytes(raw_email)
 
         subject = msg["subject"] or ""
-        print("📩 Email Subject:", subject)
-
         body = ""
 
         if msg.is_multipart():
@@ -72,41 +68,45 @@ def check_email():
 
         full_text = (subject + " " + body).lower()
 
-        # Industry filter
         industry_keywords = ["cement", "building material", "concrete", "rmc"]
-
-        # Leadership filter
         role_keywords = [
-            "sales head",
-            "regional sales",
-            "state head",
-            "business head",
-            "cluster head",
-            "zonal head",
-            "technical head",
-            "sales manager"
+            "sales head", "regional sales", "state head",
+            "business head", "cluster head", "zonal head",
+            "technical head", "sales manager"
         ]
 
         if any(ind in full_text for ind in industry_keywords) and \
            any(role in full_text for role in role_keywords):
 
-            # Extract links
             for word in body.split():
                 if "http" in word:
                     clean_link = word.strip()
 
                     if not is_duplicate(clean_link):
-                        message = f"🚨 Cement Leadership Job Alert\n\n📌 {subject}\n🔗 {clean_link}"
-                        send_telegram(message)
+                        collected_jobs.append((subject, clean_link))
                         save_job(clean_link)
 
     mail.logout()
 
+def send_hourly_report():
+    global collected_jobs
+
+    print("📊 Sending hourly report...")
+
+    if collected_jobs:
+        message = "📊 Cement Leadership Job Report (Last 1 Hour)\n\n"
+        for i, (title, link) in enumerate(collected_jobs, 1):
+            message += f"{i}️⃣ {title}\n🔗 {link}\n\n"
+    else:
+        message = "📊 Cement Leadership Job Report (Last 1 Hour)\n\nNo new relevant jobs found."
+
+    send_telegram(message)
+    collected_jobs = []
+
 schedule.every(5).minutes.do(check_email)
+schedule.every(1).hours.do(send_hourly_report)
 
-send_telegram("✅ Multi-Portal Email Job Bot Activated")
-
-check_email()
+send_telegram("✅ Hourly Cement Job Bot Activated")
 
 while True:
     schedule.run_pending()
