@@ -133,7 +133,7 @@ def send_hourly_report():
     collected_jobs = []
 
 schedule.every(5).minutes.do(check_email)
-schedule.every(1).hours.do(send_hourly_report)
+schedule.every(2).minutes.do(send_hourly_report)
 
 send_telegram("✅ Executive Company Tracking Bot Activated")
 
